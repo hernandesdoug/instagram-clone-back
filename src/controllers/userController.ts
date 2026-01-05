@@ -5,8 +5,10 @@ import { RowDataPacket, ResultSetHeader } from "mysql2";
 
 const postUserByLogin = async (request, response) => {
     try {
+       
         const { usuario, senha } = request.body;
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE USUARIO = = ?", [usuario]);
+         console.log(request.body);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE USUARIO = ?", [usuario]);
 
         if (rows.length === 0) {
             return response.status(400).json({
@@ -14,11 +16,11 @@ const postUserByLogin = async (request, response) => {
                 type: "error",
             });
         }
-        return response.status(200).json({
+        return response.status(201).json({
             message: "Login OK!",
             type: "success",
-        })
-
+        }
+)
     } catch (error) {
         return response.status(500).json({
             message: "Sign In Failed!",
