@@ -1,13 +1,13 @@
-import {User} from "../models/user"
+import { User } from "../models/user"
 import pool from "../models/pool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-
+import { Request, Response } from "express";
 
 const postUserByLogin = async (request, response) => {
     try {
-       
+
         const { usuario, senha } = request.body;
-         console.log(request.body);
+        console.log(request.body);
         const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE USUARIO = ?", [usuario]);
 
         if (rows.length === 0) {
@@ -20,7 +20,7 @@ const postUserByLogin = async (request, response) => {
             message: "Login OK!",
             type: "success",
         }
-)
+        )
     } catch (error) {
         return response.status(500).json({
             message: "Sign In Failed!",
@@ -28,23 +28,35 @@ const postUserByLogin = async (request, response) => {
         });
     }
 };
-const postUser = async (request, response) => {
+const postUser = async (request: Request, response: Response) => {
     try {
-        const { usuario, senha , nomeCompleto, nomeUsuario} = request.body;
+        const { usuario, 
+                senha, 
+                nomeCompleto, 
+                nomeUsuario, 
+                descricaoBio
+         } = request.body;
+         const fotoPerfil = request.file
+
+         console.log(fotoPerfil);
         const rows = `INSERT INTO USUARIO_INSTAGRAM(
             USUARIO, 
             SENHA, 
             NOMECOMPLETO, 
-            NOMEUSUARIO
+            NOMEUSUARIO,
+            DESCRICAOBIO,
+            FOTOPERFIL
             ) 
-            VALUES (?,?,?,?)   
+            VALUES (?,?,?,?,?,?)   
         `;
-         
+
         const params = [
-            usuario, 
-            senha, 
-            nomeCompleto, 
-            nomeUsuario
+            usuario,
+            senha,
+            nomeCompleto,
+            nomeUsuario,
+            descricaoBio,
+            fotoPerfil?.filename
         ];
 
         const [result] = await pool.query<ResultSetHeader>(rows, params);
@@ -62,4 +74,5 @@ const postUser = async (request, response) => {
         });
     }
 };
-export {postUserByLogin, postUser};
+
+export { postUserByLogin, postUser };
