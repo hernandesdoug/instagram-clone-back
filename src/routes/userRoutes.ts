@@ -1,5 +1,7 @@
 import express from "express";
-import {postUserByLogin, postUser} from "../controllers/userController";
+import {postUserByLogin, postUser, 
+        updatePerfil, deletePerfil, getUserId} 
+      from "../controllers/userController";
 import multer from "multer";
 import fs from "fs";
 
@@ -21,15 +23,15 @@ const upload = multer({ storage })
 
 const userRoutes = express.Router();
 
-//userRoutes.get("/user/:id", getUserById);
+userRoutes.get("/user/:id", getUserId);
 
 userRoutes.post("/user/login", postUserByLogin);
 
 userRoutes.post("/user", upload.single('avatar'), postUser);
 
-//userRoutes.put("/user/:id", upload.single('avatar'), updateUser);
+userRoutes.put("/user/:id", upload.single('avatar'), updatePerfil);
 
-//userRoutes.delete("/user/:id", deleteUser);
+userRoutes.delete("/user/:id", deletePerfil);
 
 export default userRoutes;
 
