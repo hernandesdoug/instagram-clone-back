@@ -5,7 +5,7 @@ import { Request, Response } from "express";
 const postUserByLogin = async (request, response) => {
     try {
         const { usuario, senha } = request.body;
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE USUARIO = ?", [usuario]);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO FROM USUARIO_INSTAGRAM WHERE USUARIO = ?", [usuario]);
 
         if (rows.length === 0) {
             return response.status(400).json({
@@ -13,11 +13,7 @@ const postUserByLogin = async (request, response) => {
                 type: "error",
             });
         }
-        return response.status(201).json({
-            message: "Login OK!",
-            type: "success",
-        }
-        )
+        return response.status(201).json(rows[0])
     } catch (error) {
         return response.status(500).json({
             message: "Sign In Failed!",
@@ -73,33 +69,34 @@ const postUser = async (request: Request, response: Response) => {
 
 const updatePerfil = async (request, response) => {
     try {
-        const { id } = request.params;
-
-        const { usuario,
-            senha,
+        const { id } = request.params
+        console.log(id);
+        const {
             nomeCompleto,
+            senha,
             nomeUsuario,
-            descricaoBio
+            usuarioBio,
+            usuario
         } = request.body;
         const fotoPerfil = request.file
 
         const rows = `UPDATE USUARIO_INSTAGRAM SET
-            USUARIO = ?, 
-            SENHA = ?, 
-            NOMECOMPLETO = ?, 
+            USUARIO = ?,
+            NOMECOMPLETO = ?,
             NOMEUSUARIO = ?,
             DESCRICAOBIO = ?,
-            FOTOPERFIL = ?   
+            FOTOPERFIL = ?,   
+            SENHA = ?
             WHERE ID = ?
         `;
 
-        const params = [
-            usuario,
-            senha,
+        const params = [  
             nomeCompleto,
+            senha,
             nomeUsuario,
-            descricaoBio,
+            usuarioBio,
             fotoPerfil?.filename,
+            usuario,
             id
         ];
 
@@ -110,6 +107,10 @@ const updatePerfil = async (request, response) => {
                 message: "Usuario nao encontrado"
             });
         }
+        response.status(200).json({ 
+            message: "Dados alterados!",
+            type: "success"
+        });
     } catch (error) {
         response.status(500).json({
             message: "Update failed!",
@@ -145,12 +146,13 @@ const deletePerfil = async (request, response) => {
 
 const getUserId = async (request, response) => {
     try {
-        const { id } = request.params;
-        const [rows]: any = await pool.query("SELECT * FROM USUARIO_INSTAGRAM WHERE ID = ?", [id]);
-    response.status(200).json(rows[0] ?? null);
+        const { usuario } = request.params;
+        const [rows]: any = await pool.query("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO = ?", [usuario]);
+        console.log(rows)
+        response.status(200).json(rows[0] ?? null);
     } catch (error) {
         response.status(500).json({
-            message: "Delete Failed!",
+            message: "User data Failed!",
             type: "error",
         });
     }
