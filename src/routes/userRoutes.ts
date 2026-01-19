@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
-        const filename = file?.originalname.split(" ").join("-");
+        const filename = file?.originalname.split(" ").join("-")
         cb(null, filename);
     }
 
@@ -23,7 +23,7 @@ const upload = multer({ storage })
 
 const userRoutes = express.Router();
 
-userRoutes.get("/user/:id", getUserId);
+userRoutes.get("/user/:usuario", getUserId);
 
 userRoutes.post("/user/login", postUserByLogin);
 
