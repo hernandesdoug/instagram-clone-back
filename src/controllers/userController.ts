@@ -67,7 +67,7 @@ const postUser = async (request: Request, response: Response) => {
     }
 };
 
-const updatePerfil = async (request, response) => {
+const updatePerfil = async (request: Request, response: Response) => {
     try {
         const { id } = request.params
         const {
@@ -75,17 +75,17 @@ const updatePerfil = async (request, response) => {
             nomeCompleto,
             nomeUsuario,
             senha,
-            descricaoBio,
+            descricaoBio
         } = request.body;
         const fotoPerfil = request.file;
-
+    
         const rows = `UPDATE USUARIO_INSTAGRAM SET
             INFOCONTATO = ?,
             NOMECOMPLETO = ?,
             NOMEUSUARIO = ?,
-            SENHA = ?
+            SENHA = ?,
             DESCRICAOBIO = ?,
-            FOTOPERFIL = ?,       
+            FOTOPERFIL = ?      
             WHERE ID = ?
         `;
 
@@ -96,11 +96,11 @@ const updatePerfil = async (request, response) => {
             nomeUsuario,
             senha,
             descricaoBio,
-            fotoPerfil?.filename,
+            fotoPerfil?.filename
         ];
 
         const [result] = await pool.query<ResultSetHeader>(rows, params);
-
+        console.log(result);
         if (result.affectedRows === 0) {
             return response.status(404).json({
                 message: "Usuario nao encontrado"
@@ -146,9 +146,25 @@ const deletePerfil = async (request, response) => {
 const getUserId = async (request, response) => {
     try {
         const { usuario } = request.params;
-        const [rows]: any = await pool.query("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO = ?", [usuario]);
-        response.status(200).json(
-            rows[0] ?? null);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO = ?", [usuario]);
+
+         if (rows.length === 0) {
+            return response.status(404).json({
+                message: "User not found",
+                type: "error"
+            });
+        }
+        const user = rows[0]
+        const id = user.ID
+        const imgPerfil = `http://localhost:3333/uploads/${user.FOTOPERFIL}`
+        const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ?", [id]);
+        const seguindo = count1[0].qtde
+        const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ?", [id]);
+        const seguidores = count2[0].qtde
+        response.status(200).json({
+            ...user, seguindo, seguidores, imgPerfil
+        });
+           
     } catch (error) {
         response.status(500).json({
             message: "User data Failed!",
