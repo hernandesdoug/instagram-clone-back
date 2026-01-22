@@ -78,7 +78,7 @@ const updatePerfil = async (request: Request, response: Response) => {
             descricaoBio
         } = request.body;
         const fotoPerfil = request.file;
-    
+      
         const rows = `UPDATE USUARIO_INSTAGRAM SET
             INFOCONTATO = ?,
             NOMECOMPLETO = ?,
@@ -90,13 +90,13 @@ const updatePerfil = async (request: Request, response: Response) => {
         `;
 
         const params = [  
-            id,
             infoContato,
             nomeCompleto,
             nomeUsuario,
             senha,
             descricaoBio,
-            fotoPerfil?.filename
+            fotoPerfil?.filename,
+            id
         ];
 
         const [result] = await pool.query<ResultSetHeader>(rows, params);
@@ -156,6 +156,7 @@ const getUserId = async (request, response) => {
         }
         const user = rows[0]
         const id = user.ID
+        console.log(user);
         const imgPerfil = `http://localhost:3333/uploads/${user.FOTOPERFIL}`
         const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ?", [id]);
         const seguindo = count1[0].qtde
