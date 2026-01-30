@@ -1,6 +1,7 @@
 import express from "express";
+import verifyToken from "../utils/verifyToken";
 import {postUserByLogin, postUser, 
-        updatePerfil, deletePerfil, getUserId} 
+        updatePerfil, deletePerfil, getUserId, getUser} 
       from "../controllers/userController";
 import multer from "multer";
 import fs from "fs";
@@ -23,15 +24,17 @@ const upload = multer({ storage })
 
 const userRoutes = express.Router();
 
-userRoutes.get("/user/:usuario", getUserId);
+userRoutes.get("/user/:usuario", verifyToken, getUserId);
 
 userRoutes.post("/user/login", postUserByLogin);
 
-userRoutes.post("/user", upload.single('avatar'), postUser);
+userRoutes.post("/user", upload.single('avatar'), verifyToken, postUser);
 
-userRoutes.put("/user/:id", upload.single('avatar'), updatePerfil);
+userRoutes.put("/user/:id", upload.single('avatar'), verifyToken, updatePerfil);
 
-userRoutes.delete("/user/:id", deletePerfil);
+userRoutes.delete("/user/:id", verifyToken, deletePerfil);
+
+userRoutes.get("/user/search/:busca", getUser);
 
 export default userRoutes;
 

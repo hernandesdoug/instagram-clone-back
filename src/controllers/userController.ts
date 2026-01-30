@@ -1,19 +1,40 @@
 import pool from "../models/pool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 const postUserByLogin = async (request, response) => {
     try {
         const { usuario, senha } = request.body;
+        console.log(request.body);
         const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO FROM USUARIO_INSTAGRAM WHERE INFOCONTATO = ?", [usuario]);
-
-        if (rows.length === 0) {
+        console.log([rows]);
+        if (!usuario || !senha) {
             return response.status(400).json({
                 message: "Usuario ou senha inválidos",
                 type: "error",
             });
         }
-        return response.status(201).json(rows[0])
+        const user = rows[0];
+         
+        const secretKey = process.env.JWT_SECRET_KEY as string;
+        
+        const token = jwt.sign(
+            {
+            id: user.ID,
+            nome: user.NOMEUSUARIO
+            },
+        secretKey,
+        {expiresIn: "1h"}
+        );
+
+        return response.status(201).json({
+            user: {
+                id: user.ID,
+                nome: user.NOMEUSUARIO,
+            },
+            token,
+        })
     } catch (error) {
         return response.status(500).json({
             message: "Sign In Failed!",
@@ -98,7 +119,7 @@ const updatePerfil = async (request: Request, response: Response) => {
             fotoPerfil?.filename,
             id
         ];
-
+        console.log(fotoPerfil);
         const [result] = await pool.query<ResultSetHeader>(rows, params);
         console.log(result);
         if (result.affectedRows === 0) {
@@ -143,6 +164,35 @@ const deletePerfil = async (request, response) => {
     }
 }
 
+const getUser = async (request, response) => {
+    try {
+        const { busca } = request.params;
+        console.log(busca);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMECOMPLETO LIKE ?", [`%${busca}%`]);
+        console.log([rows])
+         if (rows.length === 0) {
+            return response.status(404).json({
+                message: "User not found",
+                type: "error"
+            });
+        }
+        const user = rows[0]
+        const id = user.ID
+        console.log(user);
+        const imgPerfil = `http://localhost:3333/uploads/${user.FOTOPERFIL}`
+        
+        response.status(200).json({
+            ...user, imgPerfil, id
+        });           
+    } catch (error) {
+        console.log(error)
+        response.status(500).json({
+            message: "User data Failed!",
+            type: "error",
+        });
+    }
+}
+
 const getUserId = async (request, response) => {
     try {
         const { usuario } = request.params;
@@ -173,4 +223,4 @@ const getUserId = async (request, response) => {
         });
     }
 }
-export { postUserByLogin, postUser, updatePerfil, deletePerfil, getUserId};
+export { postUserByLogin, postUser, updatePerfil, deletePerfil, getUserId, getUser};
