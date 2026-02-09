@@ -25,7 +25,7 @@ const postUserByLogin = async (request, response) => {
             nome: user.NOMEUSUARIO
             },
         secretKey,
-        {expiresIn: "1h"}
+        {expiresIn: "3h"}
         );
 
         return response.status(201).json({
@@ -99,28 +99,32 @@ const updatePerfil = async (request: Request, response: Response) => {
             descricaoBio
         } = request.body;
         const fotoPerfil = request.file;
-      
-        const rows = `UPDATE USUARIO_INSTAGRAM SET
+
+        let sql = `UPDATE USUARIO_INSTAGRAM SET
             INFOCONTATO = ?,
             NOMECOMPLETO = ?,
             NOMEUSUARIO = ?,
             SENHA = ?,
-            DESCRICAOBIO = ?,
-            FOTOPERFIL = ?      
-            WHERE ID = ?
+            DESCRICAOBIO = ?
         `;
+        if (fotoPerfil) {
+            sql = sql + ',FOTOPERFIL = ?'
+        }
+        sql = sql + 'WHERE ID = ?'
 
-        const params = [  
+        let params = [  
             infoContato,
             nomeCompleto,
             nomeUsuario,
             senha,
-            descricaoBio,
-            fotoPerfil?.filename,
-            id
+            descricaoBio
         ];
-        console.log(fotoPerfil);
-        const [result] = await pool.query<ResultSetHeader>(rows, params);
+        if (fotoPerfil) {
+            params.push(fotoPerfil?.filename)
+        }
+        params.push(id);
+        
+        const [result] = await pool.query<ResultSetHeader>(sql, params);
         console.log(result);
         if (result.affectedRows === 0) {
             return response.status(404).json({
@@ -166,24 +170,10 @@ const deletePerfil = async (request, response) => {
 
 const getUser = async (request, response) => {
     try {
-        const { busca } = request.body;
-        console.log(request.body);
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO LIKE ?", [`%${busca}%`]);
-        console.log(rows)
-         if (rows.length === 0) {
-            return response.status(404).json({
-                message: "User not found",
-                type: "error"
-            });
-        }
-        const user = rows[0]
-        const id = user.ID
-        console.log(user);
-        const imgPerfil = `http://localhost:3333/uploads/${user.FOTOPERFIL}`
+        const { busca } = request.params;
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, FOTOPERFIL, NOMEUSUARIO, NOMECOMPLETO FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO LIKE ?", [`%${busca}%`]);
         
-        response.status(200).json({
-            ...user, imgPerfil, id
-        });           
+        response.status(200).json(rows);           
     } catch (error) {
         console.log(error)
         response.status(500).json({
@@ -207,13 +197,13 @@ const getUserId = async (request, response) => {
         const user = rows[0]
         const id = user.ID
         console.log(user);
-        const imgPerfil = `http://localhost:3333/uploads/${user.FOTOPERFIL}`
+    
         const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ?", [id]);
         const seguindo = count1[0].qtde
         const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ?", [id]);
         const seguidores = count2[0].qtde
         response.status(200).json({
-            ...user, seguindo, seguidores, imgPerfil
+            ...user, seguindo, seguidores
         });
            
     } catch (error) {
