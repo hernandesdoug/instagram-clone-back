@@ -166,10 +166,10 @@ const deletePerfil = async (request, response) => {
 
 const getUser = async (request, response) => {
     try {
-        const { busca } = request.params;
-        console.log(busca);
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMECOMPLETO LIKE ?", [`%${busca}%`]);
-        console.log([rows])
+        const { busca } = request.body;
+        console.log(request.body);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO LIKE ?", [`%${busca}%`]);
+        console.log(rows)
          if (rows.length === 0) {
             return response.status(404).json({
                 message: "User not found",
