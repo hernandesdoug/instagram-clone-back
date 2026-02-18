@@ -1,29 +1,62 @@
 import pool from "../models/pool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { Request, Response } from "express";
 
 
 const seguirPerfil = async (request, response) => {
     try {
-        const { seguidorId,
-                seguindoId,
-        } = request.body;
-        const rows = `INSERT INTO USUARIO_SEGUE(
+        const { idUsuario, usuarioId } = request.body;
+
+        const seguidorId = Number(usuarioId);
+        const seguindoId = idUsuario;
+
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_SEGUE  WHERE SEGUIDOR_ID = ? AND SEGUINDO_ID = ?", [seguidorId, seguindoId]);
+
+        if (rows.length === 0) {
+            const [result] = await pool.query<ResultSetHeader>(
+                `INSERT INTO USUARIO_SEGUE(
             SEGUIDOR_ID, 
             SEGUINDO_ID, 
-            DATA_CRIACAO
+            STATUS
             ) 
-            VALUES (?,?,?)   
-        `;
-        const params = [
-            seguidorId,
-            seguindoId
-        ];
-        const [result] = await pool.query<ResultSetHeader>(rows, params);
-        return response.status(201).json({
-            message: result.insertId,
-            type: "success",
-        })
+            VALUES (?,?,'S')`, [seguidorId, seguindoId]);
+
+            return response.status(201).json({
+                id: result.insertId,
+                isSeguindo: true,
+                type: "success",
+            })
+        };
+
+        const segue = rows[0];
+       
+        if (segue.STATUS === 'S'){
+            await pool.query(
+                `UPDATE USUARIO_SEGUE SET
+                    STATUS = 'N'
+                 WHERE SEGUINDO_ID = ?  
+                `,
+                [segue.SEGUINDO_ID]
+            );
+            return response.status(200).json({
+                isSeguindo: false,
+                type: "deixou de seguir",
+            })
+        }
+
+        if (segue.STATUS === 'N'){
+            await pool.query(
+                `UPDATE USUARIO_SEGUE SET
+                    STATUS = 'S'
+                 WHERE SEGUINDO_ID = ?  
+                `,
+                [segue.SEGUINDO_ID]
+            );
+            return response.status(200).json({
+                isSeguindo: true,
+                type: "seguindo novamente",
+            })
+        }
+
     } catch (error) {
         console.log(error);
         return response.status(500).json({
@@ -33,57 +66,4 @@ const seguirPerfil = async (request, response) => {
     }
 }
 
-const deixarSeguir = async (request, response) => {
-    try {
-        const { id } = request.params;
-
-        const [result] = await pool.query<ResultSetHeader>("DELETE FROM USUARIO_SEGUE WHERE ID = ?", [id]);
-
-        if (result.affectedRows === 0) {
-            return response.status(404).json({
-                message: "Seguidor não encontrado",
-                type: "error"
-            });
-        }
-
-        response.status(201).json({
-            message: "Você parou de seguir",
-            type: "success"
-        })
-    } catch (error) {
-        response.status(500).json({
-            message: "Delete Failed!",
-            type: "error",
-        });
-    }   
-}
-
-const buscarSeguidores = async (request, response) => {
-    try {
-        const { id } = request.params;
-        const [rows]: any = await pool.query("SELECT COUNT(*) FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ?", [id]);
-        response.status(200).json(
-            rows[0] ?? null);
-    } catch (error) {
-        response.status(500).json({
-            message: "Data recover Failed!",
-            type: "error",
-        });
-    }
-}
-
-const buscarSeguindo = async (request, response) => {
-    try {
-        const { id } = request.params;
-        const [rows]: any = await pool.query("SELECT COUNT(*) FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ?", [id]);
-        response.status(200).json(
-            rows[0] ?? null);
-    } catch (error) {
-        response.status(500).json({
-            message: "Data recover Failed!",
-            type: "error",
-        });
-    }
-}
-
-export {seguirPerfil, deixarSeguir, buscarSeguidores, buscarSeguindo} 
+export { seguirPerfil } 

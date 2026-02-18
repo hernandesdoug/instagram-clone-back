@@ -198,9 +198,9 @@ const getUserId = async (request, response) => {
         const id = user.ID
         console.log(user);
     
-        const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ?", [id]);
+        const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ? AND STATUS = 'S'", [id]);
         const seguindo = count1[0].qtde
-        const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ?", [id]);
+        const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ? AND STATUS = 'S'", [id]);
         const seguidores = count2[0].qtde
         response.status(200).json({
             ...user, seguindo, seguidores
