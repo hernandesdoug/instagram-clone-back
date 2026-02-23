@@ -202,8 +202,11 @@ const getUserId = async (request, response) => {
         const seguindo = count1[0].qtde
         const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ? AND STATUS = 'S'", [id]);
         const seguidores = count2[0].qtde
+        const [count3] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [id]);
+        const postagens = count3[0].qtde
+
         response.status(200).json({
-            ...user, seguindo, seguidores
+            ...user, seguindo, seguidores, postagens
         });
            
     } catch (error) {
