@@ -38,48 +38,31 @@ const postarFoto = async (request, response) => {
     }
 }
 
-const postsUsuario = async (request, response) => {
-    try {
-        const { idUsuario } = request.body;
-
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [idUsuario]);
-
-        if (rows.length === 0) {
-            return response.status(404).json({
-                message: "Posts not found",
-                type: "error"
-            });
-        }
-        const posts = rows[0]
-
-        response.status(200).json({
-            ...posts
-        });
-
-    } catch (error) {
-        response.status(500).json({
-            message: "User data Failed!",
-            type: "error",
-        });
-    }
-}
-
 const postsFeed = async (request, response) => {
     try {
-        
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS");
-
-        if (rows.length === 0) {
-            return response.status(404).json({
+        const { idUsuario } = request.params;
+        console.log(idUsuario);
+        if (!idUsuario) {
+            console.log("entra aqui quando é feed")
+            const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS");
+            if (rows.length === 0) {
+                return response.status(404).json({
                 message: "Posts not found",
                 type: "error"
-            });
-        }
-        const posts = rows[0]
-
-        response.status(200).json({
-            ...posts
-        });
+                });
+            }
+            response.status(200).json(rows); 
+        } else {
+            console.log("entra aqui quando é perfil")
+            const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [idUsuario]);
+            if (rows.length === 0) {
+                return response.status(404).json({
+                message: "User posts not found",
+                type: "error"
+                });
+            }
+            response.status(200).json(rows); 
+        }    
 
     } catch (error) {
         response.status(500).json({
@@ -114,4 +97,4 @@ const apagarPost = async (request, response) => {
     }
 }
 
-export { postarFoto, postsFeed, postsUsuario, apagarPost } 
+export { postarFoto, postsFeed, apagarPost } 
