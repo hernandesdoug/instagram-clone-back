@@ -1,6 +1,5 @@
 import pool from "../models/pool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { Request, Response } from "express";
 
 const postarFoto = async (request, response) => {
     try {
@@ -12,16 +11,15 @@ const postarFoto = async (request, response) => {
         const rows = `INSERT INTO USUARIO_FOTOS(
             FOTO_POSTAGEM, 
             USUARIO_ID, 
-            DATA_CRIACAO,
             LEGENDA_FOTO
             ) 
-            VALUES (?,?,?,?)    
+            VALUES (?,?,?)    
         `;
 
         const params = [
+            fotoPostagem?.filename,
             usuarioId,
-            legendaFoto,
-            fotoPostagem?.filename
+            legendaFoto   
         ];
 
         const [result] = await pool.query<ResultSetHeader>(rows, params);
@@ -40,7 +38,33 @@ const postarFoto = async (request, response) => {
     }
 }
 
-const recuperarPosts = async (request, response) => {
+const postsUsuario = async (request, response) => {
+    try {
+        const { idUsuario } = request.body;
+
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [idUsuario]);
+
+        if (rows.length === 0) {
+            return response.status(404).json({
+                message: "Posts not found",
+                type: "error"
+            });
+        }
+        const posts = rows[0]
+
+        response.status(200).json({
+            ...posts
+        });
+
+    } catch (error) {
+        response.status(500).json({
+            message: "User data Failed!",
+            type: "error",
+        });
+    }
+}
+
+const postsFeed = async (request, response) => {
     try {
         
         const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS");
@@ -90,4 +114,4 @@ const apagarPost = async (request, response) => {
     }
 }
 
-export { postarFoto, recuperarPosts, apagarPost } 
+export { postarFoto, postsFeed, postsUsuario, apagarPost } 
