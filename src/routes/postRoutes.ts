@@ -1,5 +1,5 @@
 import express from "express";
-import {postarFoto, postsFeed, apagarPost} 
+import {postarFoto, postsFeed, apagarPost, postsUsuario} 
       from "../controllers/postController";
 import multer from "multer";
 import fs from "fs";
@@ -22,7 +22,9 @@ const upload = multer({ storage })
 
 const postRoutes = express.Router();
 
-postRoutes.get("/post/", postsFeed);
+postRoutes.get("/post/segue/:id", postsFeed);
+
+postRoutes.get("/post/:id", postsUsuario);
 
 postRoutes.post("/post", upload.single('avatar'), postarFoto);
 
