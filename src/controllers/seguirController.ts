@@ -28,8 +28,8 @@ const seguirPerfil = async (request, response) => {
         };
 
         const segue = rows[0];
-       
-        if (segue.STATUS === 'S'){
+
+        if (segue.STATUS === 'S') {
             await pool.query(
                 `UPDATE USUARIO_SEGUE SET
                     STATUS = 'N'
@@ -43,7 +43,7 @@ const seguirPerfil = async (request, response) => {
             })
         }
 
-        if (segue.STATUS === 'N'){
+        if (segue.STATUS === 'N') {
             await pool.query(
                 `UPDATE USUARIO_SEGUE SET
                     STATUS = 'S'
@@ -66,4 +66,38 @@ const seguirPerfil = async (request, response) => {
     }
 }
 
-export { seguirPerfil } 
+const buscaSeguindo = async (request, response) => {
+    try {
+        const { id } = request.params;
+
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUIDOR_ID = ? WHERE ID = SEGUINDO_ID AND STATUS = 'S'", [id]);
+
+        response.status(200).json(rows);
+
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({
+            message: "Fetch Failed!",
+            type: "error",
+        });
+    }
+}
+
+const buscaSeguidores = async (request, response) => {
+    try {
+        const { id } = request.params;
+
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUINDO_ID = ? WHERE ID = SEGUIDOR_ID AND STATUS = 'S'", [id]);
+
+        response.status(200).json(rows);
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({
+            message: "Fetch Failed!",
+            type: "error",
+        });
+    }
+}
+
+export { seguirPerfil, buscaSeguidores, buscaSeguindo } 
