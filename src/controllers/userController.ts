@@ -7,7 +7,7 @@ const postUserByLogin = async (request, response) => {
     try {
         const { usuario, senha } = request.body;
         console.log(request.body);
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO FROM USUARIO_INSTAGRAM WHERE INFOCONTATO = ?", [usuario]);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM WHERE INFOCONTATO = ?", [usuario]);
         console.log([rows]);
         if (!usuario || !senha) {
             return response.status(400).json({
@@ -32,6 +32,7 @@ const postUserByLogin = async (request, response) => {
             user: {
                 id: user.ID,
                 nome: user.NOMEUSUARIO,
+                foto: user.FOTOPERFIL
             },
             token,
         })
