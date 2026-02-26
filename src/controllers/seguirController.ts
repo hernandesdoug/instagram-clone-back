@@ -16,7 +16,7 @@ const seguirPerfil = async (request, response) => {
                 `INSERT INTO USUARIO_SEGUE(
             SEGUIDOR_ID, 
             SEGUINDO_ID, 
-            STATUS
+            IND_STATUS
             ) 
             VALUES (?,?,'S')`, [seguidorId, seguindoId]);
 
@@ -29,10 +29,10 @@ const seguirPerfil = async (request, response) => {
 
         const segue = rows[0];
 
-        if (segue.STATUS === 'S') {
+        if (segue.IND_STATUS === 'S') {
             await pool.query(
                 `UPDATE USUARIO_SEGUE SET
-                    STATUS = 'N'
+                    IND_STATUS = 'N'
                  WHERE SEGUINDO_ID = ?  
                 `,
                 [segue.SEGUINDO_ID]
@@ -43,10 +43,10 @@ const seguirPerfil = async (request, response) => {
             })
         }
 
-        if (segue.STATUS === 'N') {
+        if (segue.IND_STATUS === 'N') {
             await pool.query(
                 `UPDATE USUARIO_SEGUE SET
-                    STATUS = 'S'
+                    IND_STATUS = 'S'
                  WHERE SEGUINDO_ID = ?  
                 `,
                 [segue.SEGUINDO_ID]
@@ -70,7 +70,7 @@ const buscaSeguindo = async (request, response) => {
     try {
         const { id } = request.params;
 
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUIDOR_ID = ? WHERE ID = SEGUINDO_ID AND STATUS = 'S'", [id]);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL, IND_STATUS FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUIDOR_ID = ? WHERE ID = SEGUINDO_ID AND IND_STATUS = 'S'", [id]);
 
         response.status(200).json(rows);
 
@@ -88,7 +88,7 @@ const buscaSeguidores = async (request, response) => {
     try {
         const { id } = request.params;
 
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUINDO_ID = ? WHERE ID = SEGUIDOR_ID AND STATUS = 'S'", [id]);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL, IND_STATUS FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUINDO_ID = ? WHERE ID = SEGUIDOR_ID AND IND_STATUS = 'S'", [id]);
 
         response.status(200).json(rows);
     } catch (error) {

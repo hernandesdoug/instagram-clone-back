@@ -147,7 +147,7 @@ const deletePerfil = async (request, response) => {
     try {
         const { id } = request.params;
 
-        const [result] = await pool.query<ResultSetHeader>("DELETE FROM COMPANIES WHERE ID = ?", [id]);
+        const [result] = await pool.query<ResultSetHeader>("DELETE FROM USUARIO_INSTAGRAM WHERE ID = ?", [id]);
 
         if (result.affectedRows === 0) {
             return response.status(404).json({
@@ -198,9 +198,9 @@ const getUserId = async (request, response) => {
         const id = user.ID
         console.log(user);
     
-        const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ? AND STATUS = 'S'", [id]);
+        const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ? AND IND_STATUS = 'S'", [id]);
         const seguindo = count1[0].qtde
-        const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ? AND STATUS = 'S'", [id]);
+        const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ? AND IND_STATUS = 'S'", [id]);
         const seguidores = count2[0].qtde
         const [count3] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [id]);
         const postagens = count3[0].qtde
