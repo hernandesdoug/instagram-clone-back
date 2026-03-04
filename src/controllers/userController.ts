@@ -184,9 +184,12 @@ const getUser = async (request, response) => {
     }
 }
 
-const getUserId = async (request, response) => {
+const getUserId = async (request: Request, response: Response) => {
     try {
         const { usuario } = request.params;
+        const usuarioLogado = (request as any).user.id;
+        console.log("id token", usuarioLogado)
+    
         const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO = ?", [usuario]);
 
          if (rows.length === 0) {
@@ -197,7 +200,6 @@ const getUserId = async (request, response) => {
         }
         const user = rows[0]
         const id = user.ID
-        console.log(user);
     
         const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ? AND IND_STATUS = 'S'", [id]);
         const seguindo = count1[0].qtde
@@ -206,8 +208,15 @@ const getUserId = async (request, response) => {
         const [count3] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [id]);
         const postagens = count3[0].qtde
 
+        const [verifica] = await pool.query<RowDataPacket[]>(
+            `SELECT COUNT(*) AS qtde
+                    FROM USUARIO_SEGUE
+            WHERE SEGUIDOR_ID = ? AND SEGUINDO_ID = ? AND IND_STATUS = 'S'`,
+            [usuarioLogado, id]);
+        const isSeguindo = verifica[0].qtde > 0;
+
         response.status(200).json({
-            ...user, seguindo, seguidores, postagens
+            ...user, seguindo, seguidores, postagens, isSeguindo
         });
            
     } catch (error) {
