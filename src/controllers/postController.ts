@@ -66,12 +66,7 @@ const postsUsuario = async (request, response) => {
         const { id } = request.params;
         console.log(id);
         const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [id]);
-        if (rows.length === 0) {
-            return response.status(404).json({
-                message: "User posts not found",
-                type: "error"
-            });
-        }
+    
         response.status(200).json(rows);
 
 
