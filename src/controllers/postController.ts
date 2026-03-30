@@ -43,7 +43,7 @@ const postsFeed = async (request, response) => {
         const { id } = request.params;
         console.log("id usuario",id);
 
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT FOTO_ID, FOTO_POSTAGEM, LEGENDA_FOTO FROM USUARIO_SEGUE JOIN USUARIO_FOTOS ON SEGUINDO_ID = USUARIO_ID WHERE SEGUIDOR_ID = ?", [id]);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT FOTO_ID, FOTO_POSTAGEM, LEGENDA_FOTO FROM USUARIO_SEGUE JOIN USUARIO_FOTOS ON SEGUINDO_ID = USUARIO_ID WHERE SEGUIDOR_ID = ? AND IND_STATUS = 'S'", [id]);
         if (rows.length === 0) {
             return response.status(404).json({
                 message: "Posts not found",
