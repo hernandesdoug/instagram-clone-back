@@ -1,12 +1,12 @@
-import jwt, { JwtPayload }from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 interface TokenPayload extends JwtPayload {
     id: number;
     nome: string;
 }
 
-function verifyToken (request: Request, response: Response, next: NextFunction) {
-   try {
+function verifyToken(request: Request, response: Response, next: NextFunction) {
+    try {
         const header = request.headers["authorization"];
         const token = header && header.split(" ")[1];
 
@@ -18,17 +18,12 @@ function verifyToken (request: Request, response: Response, next: NextFunction) 
         }
 
         const secretKey = process.env.JWT_SECRET_KEY as string;
-
- 
         const decoded = jwt.verify(token, secretKey) as TokenPayload;
 
         (request as any).user = {
             id: decoded.id,
             nome: decoded.nome
         };
-
-        console.log("request.user setado:", (request as any).user); // deve mostrar { id: 6, nome: 'lionO' }
-
         next();
     } catch (error) {
         return response.status(403).json({

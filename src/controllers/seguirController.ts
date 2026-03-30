@@ -1,11 +1,9 @@
 import pool from "../models/pool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-
 const seguirPerfil = async (request, response) => {
     try {
         const { idUsuario, usuarioId } = request.body;
-
         const seguidorId = Number(usuarioId);
         const seguindoId = idUsuario;
 
@@ -25,8 +23,7 @@ const seguirPerfil = async (request, response) => {
                 isSeguindo: true,
                 type: "success",
             })
-        };
-
+        }
         const segue = rows[0];
 
         if (segue.IND_STATUS === 'S') {
@@ -73,8 +70,6 @@ const buscaSeguindo = async (request, response) => {
         const [rows] = await pool.query<RowDataPacket[]>("SELECT NOMECOMPLETO, NOMEUSUARIO, FOTOPERFIL, IND_STATUS FROM USUARIO_INSTAGRAM JOIN USUARIO_SEGUE ON SEGUIDOR_ID = ? WHERE ID = SEGUINDO_ID AND IND_STATUS = 'S'", [id]);
 
         response.status(200).json(rows);
-
-
     } catch (error) {
         console.log(error);
         return response.status(500).json({

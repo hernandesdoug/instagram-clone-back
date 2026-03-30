@@ -6,9 +6,9 @@ import jwt from "jsonwebtoken";
 const postUserByLogin = async (request, response) => {
     try {
         const { usuario, senha } = request.body;
-        console.log(request.body);
+
         const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM WHERE INFOCONTATO = ?", [usuario]);
-        console.log([rows]);
+
         if (!usuario || !senha) {
             return response.status(400).json({
                 message: "Usuario ou senha inválidos",
@@ -16,16 +16,16 @@ const postUserByLogin = async (request, response) => {
             });
         }
         const user = rows[0];
-         
+
         const secretKey = process.env.JWT_SECRET_KEY as string;
-        
+
         const token = jwt.sign(
             {
-            id: user.ID,
-            nome: user.NOMEUSUARIO
+                id: user.ID,
+                nome: user.NOMEUSUARIO
             },
-        secretKey,
-        {expiresIn: "3h"}
+            secretKey,
+            { expiresIn: "3h" }
         );
 
         return response.status(201).json({
@@ -42,7 +42,7 @@ const postUserByLogin = async (request, response) => {
             type: "error",
         });
     }
-};
+}
 const postUser = async (request: Request, response: Response) => {
     try {
         const { infoContato,
@@ -113,7 +113,7 @@ const updatePerfil = async (request: Request, response: Response) => {
         }
         sql = sql + 'WHERE ID = ?'
 
-        let params = [  
+        let params = [
             infoContato,
             nomeCompleto,
             nomeUsuario,
@@ -124,7 +124,7 @@ const updatePerfil = async (request: Request, response: Response) => {
             params.push(fotoPerfil?.filename)
         }
         params.push(id);
-        
+
         const [result] = await pool.query<ResultSetHeader>(sql, params);
         console.log(result);
         if (result.affectedRows === 0) {
@@ -132,7 +132,7 @@ const updatePerfil = async (request: Request, response: Response) => {
                 message: "Usuario nao encontrado"
             });
         }
-        response.status(200).json({ 
+        response.status(200).json({
             message: "Dados alterados!",
             type: "success",
         });
@@ -173,8 +173,8 @@ const getUser = async (request, response) => {
     try {
         const { busca } = request.params;
         const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, FOTOPERFIL, NOMEUSUARIO, NOMECOMPLETO FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO LIKE ?", [`%${busca}%`]);
-        
-        response.status(200).json(rows);           
+
+        response.status(200).json(rows);
     } catch (error) {
         console.log(error)
         response.status(500).json({
@@ -188,11 +188,10 @@ const getUserId = async (request: Request, response: Response) => {
     try {
         const { usuario } = request.params;
         const usuarioLogado = (request as any).user.id;
-        console.log("id token", usuarioLogado)
-    
+
         const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_INSTAGRAM WHERE NOMEUSUARIO = ?", [usuario]);
 
-         if (rows.length === 0) {
+        if (rows.length === 0) {
             return response.status(404).json({
                 message: "User not found",
                 type: "error"
@@ -200,7 +199,7 @@ const getUserId = async (request: Request, response: Response) => {
         }
         const user = rows[0]
         const id = user.ID
-    
+
         const [count1] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUIDOR_ID = ? AND IND_STATUS = 'S'", [id]);
         const seguindo = count1[0].qtde
         const [count2] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) AS qtde FROM USUARIO_SEGUE WHERE SEGUINDO_ID = ? AND IND_STATUS = 'S'", [id]);
@@ -218,7 +217,7 @@ const getUserId = async (request: Request, response: Response) => {
         response.status(200).json({
             ...user, seguindo, seguidores, postagens, isSeguindo
         });
-           
+
     } catch (error) {
         response.status(500).json({
             message: "User data Failed!",
@@ -226,4 +225,4 @@ const getUserId = async (request: Request, response: Response) => {
         });
     }
 }
-export { postUserByLogin, postUser, updatePerfil, deletePerfil, getUserId, getUser};
+export { postUserByLogin, postUser, updatePerfil, deletePerfil, getUserId, getUser };

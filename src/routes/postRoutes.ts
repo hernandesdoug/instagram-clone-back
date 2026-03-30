@@ -31,5 +31,3 @@ postRoutes.post("/post", upload.single('avatar'), postarFoto);
 postRoutes.delete("/post/:id", apagarPost);
 
 export default postRoutes;
-
-

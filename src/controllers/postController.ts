@@ -41,7 +41,6 @@ const postarFoto = async (request, response) => {
 const postsFeed = async (request, response) => {
     try {
         const { id } = request.params;
-        console.log("id usuario",id);
 
         const [rows] = await pool.query<RowDataPacket[]>("SELECT FOTO_ID, FOTO_POSTAGEM, LEGENDA_FOTO FROM USUARIO_SEGUE JOIN USUARIO_FOTOS ON SEGUINDO_ID = USUARIO_ID WHERE SEGUIDOR_ID = ? AND IND_STATUS = 'S'", [id]);
         if (rows.length === 0) {
@@ -50,7 +49,6 @@ const postsFeed = async (request, response) => {
                 type: "error"
             });
         }
-        console.log("posts: ", rows);
         response.status(200).json(rows);
 
     } catch (error) {
@@ -64,11 +62,9 @@ const postsFeed = async (request, response) => {
 const postsUsuario = async (request, response) => {
     try {
         const { id } = request.params;
-        console.log(id);
         const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM USUARIO_FOTOS WHERE USUARIO_ID = ?", [id]);
     
         response.status(200).json(rows);
-
 
     } catch (error) {
         response.status(500).json({

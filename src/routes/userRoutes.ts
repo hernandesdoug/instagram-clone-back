@@ -18,7 +18,6 @@ const storage = multer.diskStorage({
         const filename = file?.originalname.split(" ").join("-")
         cb(null, filename);
     }
-
 })
 const upload = multer({ storage })
 
@@ -37,5 +36,3 @@ userRoutes.delete("/user/:id", verifyToken, deletePerfil);
 userRoutes.get("/user/search/:busca", getUser);
 
 export default userRoutes;
-
-

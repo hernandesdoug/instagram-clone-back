@@ -10,5 +10,3 @@ seguirRoutes.get("/seguir/seguidores/:id", buscaSeguidores);
 seguirRoutes.get("/seguir/seguindo/:id", buscaSeguindo);
 
 export default seguirRoutes;
-
-
