@@ -8,7 +8,7 @@ const postUserByLogin = async (request, response) => {
     try {
         const { usuario, senha } = request.body;
 
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO, FOTOPERFIL FROM USUARIO_INSTAGRAM WHERE INFOCONTATO = ?", [usuario]);
+        const [rows] = await pool.query<RowDataPacket[]>("SELECT ID, NOMEUSUARIO, SENHA, FOTOPERFIL FROM USUARIO_INSTAGRAM WHERE INFOCONTATO = ?", [usuario]);
 
         if (!usuario || !senha) {
             return response.status(400).json({
@@ -17,6 +17,14 @@ const postUserByLogin = async (request, response) => {
             });
         }
         const user = rows[0];
+
+        const isPasswordValid = await bcrypt.compare(senha, user.SENHA);
+        if (!isPasswordValid) {
+            return response.status(400).json({
+                message: "senha incorreta!",
+                type: "error",
+            });
+        }
 
         const secretKey = process.env.JWT_SECRET_KEY as string;
 
@@ -54,6 +62,9 @@ const postUser = async (request: Request, response: Response) => {
         } = request.body;
         const fotoPerfil = request.file
 
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(senha, saltRounds);
+
         const rows = `INSERT INTO USUARIO_INSTAGRAM(
             INFOCONTATO, 
             SENHA, 
@@ -67,7 +78,7 @@ const postUser = async (request: Request, response: Response) => {
 
         const params = [
             infoContato,
-            senha,
+            hashedPassword,
             nomeCompleto,
             nomeUsuario,
             descricaoBio,
@@ -228,9 +239,9 @@ const getUserId = async (request: Request, response: Response) => {
 }
 const updatePassword = async (request, response) => {
     try {
-        const { idUsuario, novaSenha } = request.body;
-
-         if (!idUsuario || !novaSenha) {
+        const { novaSenha } = request.body;
+        const { id } = request.params;
+         if (!id || !novaSenha) {
             return response.status(400).json({
                 message: "Dados obrigatórios não enviados",
                 type: "error",
@@ -243,7 +254,7 @@ const updatePassword = async (request, response) => {
             `UPDATE USUARIO_INSTAGRAM SET
                 SENHA = ?
             WHERE ID = ?
-            `, [hashedPassword, idUsuario]
+            `, [hashedPassword, id]
         )
         response.status(201).json({
             message: "Senha alterada com sucesso!",
