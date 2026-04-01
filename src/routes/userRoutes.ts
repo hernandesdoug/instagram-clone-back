@@ -1,7 +1,7 @@
 import express from "express";
 import verifyToken from "../utils/verifyToken";
 import {postUserByLogin, postUser, 
-        updatePerfil, deletePerfil, getUserId, getUser} 
+        updatePerfil, deletePerfil, getUserId, getUser, updatePassword} 
       from "../controllers/userController";
 import multer from "multer";
 import fs from "fs";
@@ -33,6 +33,8 @@ userRoutes.put("/user/:id", upload.single('avatar'), verifyToken, updatePerfil);
 
 userRoutes.delete("/user/:id", verifyToken, deletePerfil);
 
-userRoutes.get("/user/search/:busca", getUser);
+userRoutes.get("/user/search/:busca", verifyToken, getUser);
+
+userRoutes.post("/user/password/:id", verifyToken, updatePassword);
 
 export default userRoutes;

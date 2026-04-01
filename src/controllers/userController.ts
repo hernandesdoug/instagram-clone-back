@@ -2,6 +2,7 @@ import pool from "../models/pool";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const postUserByLogin = async (request, response) => {
     try {
@@ -225,4 +226,37 @@ const getUserId = async (request: Request, response: Response) => {
         });
     }
 }
-export { postUserByLogin, postUser, updatePerfil, deletePerfil, getUserId, getUser };
+const updatePassword = async (request, response) => {
+    try {
+        const { idUsuario, novaSenha } = request.body;
+
+         if (!idUsuario || !novaSenha) {
+            return response.status(400).json({
+                message: "Dados obrigatórios não enviados",
+                type: "error",
+            });
+        }
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(novaSenha, saltRounds);
+
+        await pool.query(
+            `UPDATE USUARIO_INSTAGRAM SET
+                SENHA = ?
+            WHERE ID = ?
+            `, [hashedPassword, idUsuario]
+        )
+        response.status(201).json({
+            message: "Senha alterada com sucesso!",
+            type: "success"
+        })
+       
+    } catch (error) {
+        console.log(error)
+        response.status(500).json({
+            message: "User data Failed!",
+            type: "error",
+        });
+    }
+}
+
+export { postUserByLogin, postUser, updatePerfil, deletePerfil, getUserId, getUser, updatePassword };
